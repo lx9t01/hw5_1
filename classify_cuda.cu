@@ -32,12 +32,9 @@ void trainLogRegKernel(
     int *er;
     *er = 1;
 
-
-
-
-    if (threadIdx.x == 0) {
-        *errors = (float)(*er) / batch_size;
-    }
+    
+    *errors = (float)(*er) / batch_size;
+    
 }
 
 /*
