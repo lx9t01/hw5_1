@@ -27,7 +27,6 @@ void trainLogRegKernel(
 {
     // TODO: write me
     unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
-    *errors = 0;
     __shared__ float gradient[1024];
     while (thread_index < batch_size) {
         float wx = 0;
@@ -37,6 +36,7 @@ void trainLogRegKernel(
         if (wx * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] < 0) {
             atomicAdd(errors, 1);
         }
+        thread_index += blockDim.x * gridDim.x;
     }
     // float temp[50];
     // int *er;
