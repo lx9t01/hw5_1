@@ -40,7 +40,6 @@ void trainLogRegKernel(
         }
 
         float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
-        thread_index += blockDim.x * gridDim.x;
 
         for (int i = 0; i < REVIEW_DIM; ++i) {
             float grad_elem = 0.0;
@@ -58,6 +57,7 @@ void trainLogRegKernel(
             //     temp[i] += gradient[0];
             // }
         }
+        thread_index += blockDim.x * gridDim.x;
     }
     
 
