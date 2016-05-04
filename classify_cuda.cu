@@ -38,7 +38,6 @@ void trainLogRegKernel(
         if (wx * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] < 0) {
             atomicAdd(errors, 1);
         }
-        *errors /= batch_size;
 
         float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
 
@@ -60,6 +59,9 @@ void trainLogRegKernel(
                 atomicAdd(&weights[i], -step_size * weight_temp[i]);
                 // weights[i] = 0;
             }
+        }
+        if (thread_index == batch_size - 1) {
+            errors /= batch_size;
         }
         __syncthreads();
         thread_index += blockDim.x * gridDim.x;
