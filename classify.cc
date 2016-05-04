@@ -111,10 +111,10 @@ void classify(istream& in_stream, int batch_size) {
             review_idx = 0;
             cudaMemcpyAsync(dev_data[0], host_data, \
                 batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[0]);
-            host_error[0] = cudaClassify(dev_data[0], batch_size, 1.0, dev_weights, stream[0]);
-            printf("error rate at stream 0: %f\n", host_error[0]);
             cudaMemcpyAsync(dev_data[1], host_data + batch_size * (REVIEW_DIM + 1), \
                 batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[1]);
+            host_error[0] = cudaClassify(dev_data[0], batch_size, 1.0, dev_weights, stream[0]);
+            printf("error rate at stream 0: %f\n", host_error[0]);
             host_error[1] = cudaClassify(dev_data[1], batch_size, 1.0, dev_weights, stream[1]);
             printf("error rate at stream 1: %f\n", host_error[1]);
         }
