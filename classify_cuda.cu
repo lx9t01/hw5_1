@@ -23,12 +23,12 @@ void trainLogRegKernel(
     int batch_size,
     int step_size,
 	float *weights,
-    float *errors)
+    float *errors,
+    float *weight_temp)
 {
     // TODO: write me
     unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
     __shared__ float gradient[1024];
-    float temp[50];
 
     while (thread_index < batch_size) {
         float wx = 0;
@@ -51,9 +51,7 @@ void trainLogRegKernel(
                 }    
                 __syncthreads();
             }
-            if (threadIdx.x == 0) {
-                atomicAdd(temp + i, gradient[0]);
-            }
+            weight_temp[i] = gradient[0];
         }
         thread_index += blockDim.x * gridDim.x;
     }
@@ -83,15 +81,24 @@ float cudaClassify(
     cudaMalloc(&d_errors, sizeof(float));
     cudaMemset(d_errors, 0, sizeof(float));
 
+    float *weight_temp;
+    cudaMalloc(&weight_temp, REVIEW_DIM * sizeof(float));
+    cudaMemset(weight_temp, 0, REVIEW_DIM * sizeof(float));
+
     trainLogRegKernel<<<grid_size, block_size, shmem_bytes, stream>>>(
         data,
         batch_size,
         step_size,
         weights,
-        d_errors);
+        d_errors,
+        weight_temp);
 
     float h_errors = -1.0;
     cudaMemcpy(&h_errors, d_errors, sizeof(float), cudaMemcpyDefault);
     cudaFree(d_errors);
+    cudaFree(weight_temp);
+
+
+
     return h_errors;
 }
