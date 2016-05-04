@@ -52,7 +52,7 @@ void trainLogRegKernel(
                 __syncthreads();
             }
             if (threadIdx.x == 0) {
-                atomicAdd(&temp[i], gradient[0]);
+                atomicAdd(temp + i, gradient[0]);
             }
         }
         thread_index += blockDim.x * gridDim.x;
