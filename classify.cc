@@ -124,7 +124,7 @@ void classify(istream& in_stream, int batch_size) {
         cudaStreamSynchronize(stream[i]);
         cudaStreamDestroy(stream[i]);
     }
-    gpuErrChk(cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
+    cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost);
 
     // TODO: print out weights
     printf("final weights:\n");
