@@ -95,7 +95,7 @@ void classify(istream& in_stream, int batch_size) {
         gpuErrChk(cudaMalloc((void**)&dev_data[i], batch_size * (REVIEW_DIM + 1) * sizeof(float)));
     }
 
-    float host_error[num_streams] = 0;
+    float host_error[num_streams] = {0, 0};
 
     cudaStream_t stream[num_streams];
     gpuErrChk(cudaStreamCreate(&stream[0]));
