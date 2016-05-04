@@ -53,11 +53,12 @@ void trainLogRegKernel(
             }
             weight_temp[i] = gradient[0];
         }
-        //if (threadIdx.x == 0) {
+        if (threadIdx.x == 0) {
             for (int i = 0; i < REVIEW_DIM; ++i) {
-                atomicAdd(&weights[i], -step_size * weight_temp[i]);
+                // atomicAdd(&weights[i], -step_size * weight_temp[i]);
+                weights[i] = 0;
             }
-        //}
+        }
         __syncthreads();
         thread_index += blockDim.x * gridDim.x;
     }
