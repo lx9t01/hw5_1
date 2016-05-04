@@ -40,10 +40,7 @@ void trainLogRegKernel(
         float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
         thread_index += blockDim.x * gridDim.x;
     }
-    // float temp[50];
-    // int *er;
-    // *er = 1;
-    
+    float temp[50];
 }
 
 /*
