@@ -55,8 +55,8 @@ void trainLogRegKernel(
         }
         if (threadIdx.x == 0) {
             for (int i = 0; i < REVIEW_DIM; ++i) {
-                // atomicAdd(&weights[i], -step_size * weight_temp[i]);
-                weights[i] = 0;
+                atomicAdd(&weights[i], -step_size * weight_temp[i]);
+                // weights[i] = 0;
             }
         }
         __syncthreads();
