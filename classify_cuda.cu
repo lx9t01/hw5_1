@@ -36,6 +36,8 @@ void trainLogRegKernel(
         if (wx * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] < 0) {
             atomicAdd(errors, 1);
         }
+
+        float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
         thread_index += blockDim.x * gridDim.x;
     }
     // float temp[50];
