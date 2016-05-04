@@ -125,8 +125,8 @@ void classify(istream& in_stream, int batch_size) {
             }
         }
         for (int i = 0; i < num_streams; ++i) {
-            gpuErrChk(cudaStreamSynchronize(s[i]));
-            gpuErrChk(cudaStreamDestroy(s[i]));
+            gpuErrChk(cudaStreamSynchronize(stream[i]));
+            gpuErrChk(cudaStreamDestroy(stream[i]));
         }
         gpuErrChk(cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
         //      D->H all in a stream
@@ -141,8 +141,7 @@ void classify(istream& in_stream, int batch_size) {
     // TODO: free all memory
     free(weights);
     gpuErrChk(cudaFree(dev_weights));
-    free(host_data[0]);
-    free(host_data[1]);
+    free(host_data);
     gpuErrChk(cudaFree(dev_data[0])); 
     gpuErrChk(cudaFree(dev_data[1]));
 }
