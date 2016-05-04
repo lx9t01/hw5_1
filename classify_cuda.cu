@@ -55,7 +55,7 @@ void trainLogRegKernel(
         }
         if (threadIdx.x == 0) {
             for (int i = 0; i < REVIEW_DIM; ++i) {
-                atomicSub(weights + i, step_size * weight_temp[i]);
+                atomicAdd(&weights[i]], -step_size * weight_temp[i]);
             }
         }
         thread_index += blockDim.x * gridDim.x;
