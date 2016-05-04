@@ -82,8 +82,7 @@ void readLSAReview(string review_str, float *output, int stride) {
 void classify(istream& in_stream, int batch_size) {
     // TODO: randomly initialize weights. allocate and initialize buffers on
     //       host & device. allocate and initialize streams
-    float *weight_host, *dev_weight;
-    gpuErrChk(cudaHostAlloc((void**) &weight_host, REVIEW_DIM * sizeof(float), cudaHostAllocDefault));
+    float* weight_host = (float*) malloc (REVIEW_DIM * sizeof(float));
     gpuErrChk(cudaMalloc((void**) &dev_weight, REVIEW_DIM * sizeof(float)));
     gaussianFill(weight_host, REVIEW_DIM);
     gpuErrChk(cudaMemcpy(dev_weight, weight_host, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
