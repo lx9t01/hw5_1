@@ -124,13 +124,13 @@ void classify(istream& in_stream, int batch_size) {
                 printf("error rate at stream 1: %f\n", host_error[1]);
             }
         }
-        for (int i = 0; i < num_streams; ++i) {
-            gpuErrChk(cudaStreamSynchronize(stream[i]));
-            gpuErrChk(cudaStreamDestroy(stream[i]));
-        }
-        gpuErrChk(cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
         //      D->H all in a stream
     }
+    for (int i = 0; i < num_streams; ++i) {
+        gpuErrChk(cudaStreamSynchronize(stream[i]));
+        gpuErrChk(cudaStreamDestroy(stream[i]));
+    }
+    gpuErrChk(cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
 
     // TODO: print out weights
     printf("final weights:\n");
