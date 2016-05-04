@@ -33,7 +33,7 @@ void trainLogRegKernel(
     // *er = 1;
 
     
-    float *errors = 0;
+    *errors = 0;
     
 }
 
