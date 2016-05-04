@@ -28,6 +28,8 @@ void trainLogRegKernel(
     // TODO: write me
     unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
     __shared__ float gradient[1024];
+    float temp[50];
+
     while (thread_index < batch_size) {
         float wx = 0;
         for (int i = 0; i < REVIEW_DIM; ++i) {
@@ -39,8 +41,26 @@ void trainLogRegKernel(
 
         float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
         thread_index += blockDim.x * gridDim.x;
+
+        for (int i = 0; i < REVIEW_DIM; ++i) {
+            float grad_elem = 0.0;
+            gradient[threadIdx.x] = (-1.0/batch_size * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * data[thread_index*(REVIEW_DIM+1)+i])/denom;
+            
+            int l = blockDim.x;
+            while (l > 1) {
+                l /= 2;
+                if (threadIdx.x < l) {
+                    gradient[threadIdx.x] += gradient[threadIdx.x + l];
+                }    
+                __syncthreads();
+            }
+            if (threadIdx.x == 0) {
+                temp[i] += gradient[0];
+            }
+        }
     }
-    float temp[50];
+    
+
 }
 
 /*
