@@ -58,6 +58,7 @@ void trainLogRegKernel(
                 atomicAdd(&weights[i], -step_size * weight_temp[i]);
             }
         }
+        __syncthreads();
         thread_index += blockDim.x * gridDim.x;
     }
     
