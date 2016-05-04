@@ -61,7 +61,7 @@ void trainLogRegKernel(
             }
         }
         if (thread_index == batch_size - 1) {
-            errors /= batch_size;
+            *errors /= batch_size;
         }
         __syncthreads();
         thread_index += blockDim.x * gridDim.x;
