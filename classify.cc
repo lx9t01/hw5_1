@@ -98,8 +98,8 @@ void classify(istream& in_stream, int batch_size) {
     float host_error[num_streams] = 0;
 
     cudaStream_t stream[num_streams];
-    gpuErrChk(cudaStreamCreate(&s[0]));
-    gpuErrChk(cudaStreamCreate(&s[1]));
+    gpuErrChk(cudaStreamCreate(&stream[0]));
+    gpuErrChk(cudaStreamCreate(&stream[1]));
 
     // main loop to process input lines (each line corresponds to a review)
     int review_idx = 0;
