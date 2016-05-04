@@ -29,7 +29,8 @@ void trainLogRegKernel(
     unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
     __shared__ float gradient[1024];
     float temp[50];
-    int *er = 1;
+    int *er;
+    *er = 1;
 
 
 
