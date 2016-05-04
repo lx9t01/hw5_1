@@ -27,13 +27,13 @@ void trainLogRegKernel(
 {
     // TODO: write me
     unsigned int thread_index = blockIdx.x * blockDim.x + threadIdx.x;
-    __shared__ float gradient[1024];
-    float temp[50];
-    int *er;
-    *er = 1;
+    // __shared__ float gradient[1024];
+    // float temp[50];
+    // int *er;
+    // *er = 1;
 
     
-    *errors = (float)(*er) / batch_size;
+    float *errors = 0;
     
 }
 
