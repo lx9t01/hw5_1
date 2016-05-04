@@ -102,7 +102,7 @@ void classify(istream& in_stream, int batch_size) {
 
     printf("original weights: \n");
     for(int i = 0; i < REVIEW_DIM; ++i){
-        printf("%f, ", weight_host[i]);
+        printf("%f, ", weights[i]);
     }
     printf("\n");
     
@@ -127,7 +127,7 @@ void classify(istream& in_stream, int batch_size) {
             printf("the error 0 is %f \n", error_0);
             gpuErrChk(cudaMemcpyAsync(dev_data_1, host_buffer + (REVIEW_DIM+1) * batch_size, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[1]));
             error_1 = cudaClassify(dev_data_1, batch_size, step_size, dev_weights, s[1]);
-            printf("the error 1 is %f \n", error1);
+            printf("the error 1 is %f \n", error_1);
             STOP_RECORD_TIMER(gpu_mps);
             acm_gpu_mps += gpu_mps;
         }
