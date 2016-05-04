@@ -80,51 +80,54 @@ void readLSAReview(string review_str, float *output, int stride) {
 }
 
 void classify(istream& in_stream, int batch_size) {
-    // TODO: randomly initialize weights. allocate and initialize buffers on
+    // TODO ok: randomly initialize weights. allocate and initialize buffers on
     //       host & device. allocate and initialize streams
-    float* weight_host = (float*) malloc (REVIEW_DIM * sizeof(float));
-    float* dev_weight
-    gpuErrChk(cudaMalloc((void**) &dev_weight, REVIEW_DIM * sizeof(float)));
-    gaussianFill(weight_host, REVIEW_DIM);
-    gpuErrChk(cudaMemcpy(dev_weight, weight_host, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
+    // float *weight_host, *dev_weight;
+    // gpuErrChk(cudaHostAlloc((void**) &weight_host, REVIEW_DIM * sizeof(float), cudaHostAllocDefault));
+    float* weights = (float*) malloc(REVIEW_DIM * sizeof(float));
+    gaussianFill(weights, REVIEW_DIM);
+    float* dev_weights;
+    gpuErrChk(cudaMalloc((void**) &dev_weights, REVIEW_DIM * sizeof(float)));
+    gpuErrChk(cudaMemcpy(dev_weights, weight_host, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
 
-    float *output_host;                // buffer in host
-    float *dev_output0, *dev_output1; // buffer in device for stream 0 and 1
-    gpuErrChk(cudaHostAlloc((void**) &output_host, 2 * (REVIEW_DIM+1) * batch_size * sizeof(float), cudaHostAllocDefault));
-    gpuErrChk(cudaMalloc((void**) &dev_output0, (REVIEW_DIM+1) * batch_size * sizeof(float)));
-    gpuErrChk(cudaMalloc((void**) &dev_output1, (REVIEW_DIM+1) * batch_size * sizeof(float)));
+    float *host_buffer = (float*) malloc(2 * batch_size * (REVIEW_DIM + 1) * sizeof(float));;                // buffer in host
+    float *dev_data_0, *dev_data_1; 
+    // gpuErrChk(cudaHostAlloc((void**) &output_host, 2 * (REVIEW_DIM+1) * batch_size * sizeof(float), cudaHostAllocDefault));
+    gpuErrChk(cudaMalloc((void**) &dev_data_0, (REVIEW_DIM+1) * batch_size * sizeof(float)));
+    gpuErrChk(cudaMalloc((void**) &dev_data_1, (REVIEW_DIM+1) * batch_size * sizeof(float)));
 
     cudaStream_t s[2];
     cudaStreamCreate(&s[0]);
     cudaStreamCreate(&s[1]);
 
-
-       for(int i = 0; i < REVIEW_DIM; ++i){
-        printf("%f,", weight_host[i]);
+    printf("original weights: \n");
+    for(int i = 0; i < REVIEW_DIM; ++i){
+        printf("%f, ", weight_host[i]);
     }
+    printf("\n");
     
     // main loop to process input lines (each line corresponds to a review)
     float acm_gpu_mps = -1.0;
     float gpu_mps = -1.0;
-    float step_size = 10.0;
+    float step_size = 1.0;
     int review_idx = 0;
-    float error0 = 0;
-    float error1 = 0;
+    float error_0 = 0;
+    float error_1 = 0;
     for(string review_str; getline(in_stream, review_str); review_idx++){
         // TODO: process review_str with readLSAReview
-        readLSAReview(review_str, output_host + (REVIEW_DIM+1) * review_idx, 1);
+        readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
 
         // TODO: if you have filled up a batch, copy H->D, call kernel and copy
         //      D->H all in a stream
         if(review_idx == 2 * batch_size - 1){
             review_idx = 0;
             START_TIMER();
-            gpuErrChk(cudaMemcpyAsync(dev_output0, output_host, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
-            error0 = cudaClassify(dev_output0, batch_size, step_size, dev_weight, s[0]);
-            printf("the error0 is %f \n", error0);
-            gpuErrChk(cudaMemcpyAsync(dev_output1, output_host + (REVIEW_DIM+1) * batch_size, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[1]));
-            error1 = cudaClassify(dev_output1, batch_size, step_size, dev_weight, s[1]);
-            printf("the error1 is %f \n", error1);
+            gpuErrChk(cudaMemcpyAsync(dev_data_0, host_buffer, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
+            error_0 = cudaClassify(dev_data_0, batch_size, step_size, dev_weights, s[0]);
+            printf("the error 0 is %f \n", error_0);
+            gpuErrChk(cudaMemcpyAsync(dev_data_1, host_buffer + (REVIEW_DIM+1) * batch_size, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[1]));
+            error_1 = cudaClassify(dev_data_1, batch_size, step_size, dev_weights, s[1]);
+            printf("the error 1 is %f \n", error1);
             STOP_RECORD_TIMER(gpu_mps);
             acm_gpu_mps += gpu_mps;
         }
@@ -135,18 +138,20 @@ void classify(istream& in_stream, int batch_size) {
         cudaStreamDestroy(s[i]);
     }
     //gpuErrchk(cudaMemcpy(weight_host, dev_weight, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
-    cudaMemcpy(weight_host, dev_weight, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost);
     // TODO: print out weights
-    cudaFree(dev_weight);
-    cudaFree(dev_output0);
-    cudaFree(dev_output1);
+    cudaFree(dev_weights);
+    cudaFree(dev_data_0);
+    cudaFree(dev_data_1);
 
+    printf("final weights: \n");
     for(int i = 0; i < REVIEW_DIM; ++i){
-        printf("%f,", weight_host[i]);
+        printf("%f, ", weights[i]);
     }
+    printf("\n");
     // TODO: free all memory
-    cudaFree(weight_host);
-    cudaFree(output_host);
+    free(host_buffer);
+    free(weights);
 
 }
 
