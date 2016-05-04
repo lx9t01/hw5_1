@@ -54,9 +54,9 @@ void trainLogRegKernel(
                 }    
                 __syncthreads();
             }
-            if (threadIdx.x == 0) {
-                temp[i] += gradient[0];
-            }
+            // if (threadIdx.x == 0) {
+            //     temp[i] += gradient[0];
+            // }
         }
     }
     
