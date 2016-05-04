@@ -76,84 +76,74 @@ void readLSAReview(string review_str, float *output, int stride) {
     for (string component; getline(stream, component, ','); component_idx++) {
         output[stride * component_idx] = atof(component.c_str());
     }
-    //assert(component_idx == REVIEW_DIM + 1);
+    assert(component_idx == REVIEW_DIM + 1);
 }
 
 void classify(istream& in_stream, int batch_size) {
     // TODO: randomly initialize weights. allocate and initialize buffers on
     //       host & device. allocate and initialize streams
-    float *weight_host, *dev_weight;
-    gpuErrChk(cudaHostAlloc((void**) &weight_host, REVIEW_DIM * sizeof(float), cudaHostAllocDefault));
-    gpuErrChk(cudaMalloc((void**) &dev_weight, REVIEW_DIM * sizeof(float)));
-    gaussianFill(weight_host, REVIEW_DIM);
-    gpuErrChk(cudaMemcpy(dev_weight, weight_host, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
+    float* weights = (float*) malloc (REVIEW_DIM * sizeof(float));
+    gaussianFill (weights, REVIEW_DIM);
+    float* dev_weights;
+    gpuErrChk(cudaMalloc((void**) &dev_weights, sizeof(float) * REVIEW_DIM));
+    gpuErrChk(cudaMemcpy(dev_weights, weights, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
 
-    float *output_host;                // buffer in host
-    float *dev_output0, *dev_output1; // buffer in device for stream 0 and 1
-    gpuErrChk(cudaHostAlloc((void**) &output_host, 2 * (REVIEW_DIM+1) * batch_size * sizeof(float), cudaHostAllocDefault));
-    gpuErrChk(cudaMalloc((void**) &dev_output0, (REVIEW_DIM+1) * batch_size * sizeof(float)));
-    gpuErrChk(cudaMalloc((void**) &dev_output1, (REVIEW_DIM+1) * batch_size * sizeof(float)));
-
-    cudaStream_t s[2];
-    cudaStreamCreate(&s[0]);
-    cudaStreamCreate(&s[1]);
-
-
-       for(int i = 0; i < REVIEW_DIM; ++i){
-        printf("%f,", weight_host[i]);
+    const int num_streams = 2;
+    float* host_data = (float*) malloc(num_streams * batch_size * (REVIEW_DIM + 1) * sizeof(float));
+    float* dev_data[num_streams];
+    for (int i = 0; i < num_streams; ++i) {
+        gpuErrChk(cudaMalloc((void**)&dev_data[i], batch_size * (REVIEW_DIM + 1) * sizeof(float)));
     }
-    
+
+    float host_error[num_streams] = {0, 0};
+
+    cudaStream_t stream[num_streams];
+    gpuErrChk(cudaStreamCreate(&stream[0]));
+    gpuErrChk(cudaStreamCreate(&stream[1]));
+
     // main loop to process input lines (each line corresponds to a review)
-    float acm_gpu_mps = -1.0;
-    float gpu_mps = -1.0;
-    float step_size = 0.5;
     int review_idx = 0;
-    float error0 = 0;
-    float error1 = 0;
-    for(string review_str; getline(in_stream, review_str); review_idx++){
+    for (string review_str; getline(in_stream, review_str); review_idx++) {
         // TODO: process review_str with readLSAReview
-        readLSAReview(review_str, output_host + (REVIEW_DIM+1) * review_idx, 1);
-
+        readLSAReview(review_str, host_data + review_idx*(REVIEW_DIM+1), 1);
         // TODO: if you have filled up a batch, copy H->D, call kernel and copy
-        //      D->H all in a stream
-        if(review_idx == 2 * batch_size - 1){
+        if (review_idx == 2 * batch_size - 1) {
             review_idx = 0;
-            START_TIMER();
-            gpuErrChk(cudaMemcpyAsync(dev_output0, output_host, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
-            error0 = cudaClassify(dev_output0, batch_size, step_size, dev_weight, s[0]);
-            printf("the error0 is %f \n", error0);
-            gpuErrChk(cudaMemcpyAsync(dev_output1, output_host + (REVIEW_DIM+1) * batch_size, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[1]));
-            error1 = cudaClassify(dev_output1, batch_size, step_size, dev_weight, s[1]);
-            printf("the error1 is %f \n", error1);
-            STOP_RECORD_TIMER(gpu_mps);
-            acm_gpu_mps += gpu_mps;
+            cudaMemcpyAsync(dev_data[0], host_data, \
+                batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[0]);
+            host_error[0] = cudaClassify(dev_data[0], batch_size, 1.0, dev_weights, stream[0]);
+            printf("error rate at stream 0: %f\n", host_error[0]);
+            cudaMemcpyAsync(dev_data[1], host_data + batch_size * (REVIEW_DIM + 1), \
+                batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[1]);
+            host_error[1] = cudaClassify(dev_data[1], batch_size, 1.0, dev_weights, stream[1]);
+            printf("error rate at stream 1: %f\n", host_error[1]);
         }
+        //      D->H all in a stream
     }
-    cout << "the gpu time is " << acm_gpu_mps << endl;
-    for(int i = 0; i < 2; ++i){
-        cudaStreamSynchronize(s[i]);
-        cudaStreamDestroy(s[i]);
+    for (int i = 0; i < num_streams; ++i) {
+        cudaStreamSynchronize(stream[i]);
+        cudaStreamDestroy(stream[i]);
     }
-    //gpuErrchk(cudaMemcpy(weight_host, dev_weight, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
-    cudaMemcpy(weight_host, dev_weight, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost);
+
     // TODO: print out weights
-    cudaFree(dev_weight);
-    cudaFree(dev_output0);
-    cudaFree(dev_output1);
-
-    for(int i = 0; i < REVIEW_DIM; ++i){
-        printf("%f,", weight_host[i]);
+    printf("final weights:\n");
+    for (int i = 0; i < REVIEW_DIM; ++i) {
+        printf("%f ", weights[i]);
     }
+    printf("\n");
     // TODO: free all memory
-    cudaFree(weight_host);
-    cudaFree(output_host);
-
+    free(weights);
+    gpuErrChk(cudaFree(dev_weights));
+    free(host_data);
+    gpuErrChk(cudaFree(dev_data[0])); 
+    gpuErrChk(cudaFree(dev_data[1]));
 }
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        printf("./classify <path to datafile>\n");
-        return -1;
+		printf("./classify <path to datafile>\n");
+		return -1;
     } 
     // These functions allow you to select the least utilized GPU
     // on your system as well as enforce a time limit on program execution.
@@ -163,23 +153,23 @@ int main(int argc, char** argv) {
     TA_Utilities::select_least_utilized_GPU();
     int max_time_allowed_in_seconds = 100;
     TA_Utilities::enforce_time_limit(max_time_allowed_in_seconds);
-    
+	
     // Init timing
-    float time_initial, time_final;
-    
+	float time_initial, time_final;
+	
     int batch_size = 2048;
-    
-    // begin timer
-    time_initial = clock();
-    
+	
+	// begin timer
+	time_initial = clock();
+	
     ifstream ifs(argv[1]);
     stringstream buffer;
     buffer << ifs.rdbuf();
     classify(buffer, batch_size);
-    
-    // End timer
-    time_final = clock();
-    printf("Total time to run classify: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
-    
+	
+	// End timer
+	time_final = clock();
+	printf("Total time to run classify: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
+	
 
 }
