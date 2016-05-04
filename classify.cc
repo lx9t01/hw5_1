@@ -89,7 +89,7 @@ void classify(istream& in_stream, int batch_size) {
     gpuErrChk(cudaMemcpy(dev_weights, weights, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
 
     const int num_streams = 2;
-    float* host_data = (float*) malloc(batch_size * (REVIEW_DIM + 1) * sizeof(float));
+    float* host_data = (float*) malloc(num_streams * batch_size * (REVIEW_DIM + 1) * sizeof(float));
     float* dev_data[num_streams];
     for (int i = 0; i < num_streams; ++i) {
         gpuErrChk(cudaMalloc((void**)&dev_data[i], batch_size * (REVIEW_DIM + 1) * sizeof(float)));
@@ -103,26 +103,20 @@ void classify(istream& in_stream, int batch_size) {
 
     // main loop to process input lines (each line corresponds to a review)
     int review_idx = 0;
-    int flag = 0;
     for (string review_str; getline(in_stream, review_str); review_idx++) {
         // TODO: process review_str with readLSAReview
         readLSAReview(review_str, host_data + review_idx*(REVIEW_DIM+1), 1);
         // TODO: if you have filled up a batch, copy H->D, call kernel and copy
-        if (review_idx >= batch_size-1) {
+        if (review_idx >= 2 * batch_size - 1) {
             review_idx = 0;
-            if (flag == 0) {
-                flag = 1;
-                gpuErrChk(cudaMemcpyAsync(dev_data[0], host_data, \
-                    batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[0]));
-                host_error[0] = cudaClassify(dev_data[0], batch_size, 1.0, dev_weights, stream[0]);
-                printf("error rate at stream 0: %f\n", host_error[0]);
-            }else {
-                flag = 0;
-                gpuErrChk(cudaMemcpyAsync(dev_data[1], host_data, \
-                    batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[1]));
-                host_error[1] = cudaClassify(dev_data[1], batch_size, 1.0, dev_weights, stream[1]);
-                printf("error rate at stream 1: %f\n", host_error[1]);
-            }
+            gpuErrChk(cudaMemcpyAsync(dev_data[0], host_data, \
+                batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[0]));
+            host_error[0] = cudaClassify(dev_data[0], batch_size, 1.0, dev_weights, stream[0]);
+            printf("error rate at stream 0: %f\n", host_error[0]);
+            gpuErrChk(cudaMemcpyAsync(dev_data[1], host_data + batch_size * (REVIEW_DIM + 1), \
+                batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[1]));
+            host_error[1] = cudaClassify(dev_data[1], batch_size, 1.0, dev_weights, stream[1]);
+            printf("error rate at stream 1: %f\n", host_error[1]);
         }
         //      D->H all in a stream
     }
