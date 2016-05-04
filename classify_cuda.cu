@@ -38,6 +38,7 @@ void trainLogRegKernel(
         if (wx * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] < 0) {
             atomicAdd(errors, 1);
         }
+        *errors /= batch_size;
 
         float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
 
@@ -51,7 +52,7 @@ void trainLogRegKernel(
                 }    
                 __syncthreads();
             }
-            printf("%f\n", gradient[0]);
+            // printf("%f\n", gradient[0]);
             weight_temp[i] = gradient[0];
         }
         if (threadIdx.x == 0) {
