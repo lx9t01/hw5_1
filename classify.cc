@@ -107,22 +107,22 @@ void classify(istream& in_stream, int batch_size) {
         // TODO: process review_str with readLSAReview
         readLSAReview(review_str, host_data + review_idx*(REVIEW_DIM+1), 1);
         // TODO: if you have filled up a batch, copy H->D, call kernel and copy
-        if (review_idx >= 2 * batch_size - 1) {
+        if (review_idx == 2 * batch_size - 1) {
             review_idx = 0;
             cudaMemcpyAsync(dev_data[0], host_data, \
                 batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[0]);
-            cudaMemcpyAsync(dev_data[1], host_data + batch_size * (REVIEW_DIM + 1), \
-                batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[1]);
             host_error[0] = cudaClassify(dev_data[0], batch_size, 1.0, dev_weights, stream[0]);
             printf("error rate at stream 0: %f\n", host_error[0]);
+            cudaMemcpyAsync(dev_data[1], host_data + batch_size * (REVIEW_DIM + 1), \
+                batch_size * (REVIEW_DIM + 1) * sizeof(float), cudaMemcpyHostToDevice, stream[1]);
             host_error[1] = cudaClassify(dev_data[1], batch_size, 1.0, dev_weights, stream[1]);
             printf("error rate at stream 1: %f\n", host_error[1]);
         }
         //      D->H all in a stream
     }
     for (int i = 0; i < num_streams; ++i) {
-        gpuErrChk(cudaStreamSynchronize(stream[i]));
-        gpuErrChk(cudaStreamDestroy(stream[i]));
+        cudaStreamSynchronize(stream[i]);
+        cudaStreamDestroy(stream[i]);
     }
     gpuErrChk(cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
 
