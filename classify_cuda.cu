@@ -51,6 +51,7 @@ void trainLogRegKernel(
                 }    
                 __syncthreads();
             }
+            printf("%f\n", gradient[0]);
             weight_temp[i] = gradient[0];
         }
         if (threadIdx.x == 0) {
