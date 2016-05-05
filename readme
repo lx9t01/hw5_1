@@ -1,7 +1,13 @@
 // readme
 
 Please refer to the runtime recording below:
+1081047490 Byte = 1.0068 GB = 1030.96 MB
+
 Rumtime: 
-batch_size		runtime	(s)		only IO?
-2048			16.772825 		No, with kernel calculation
-2048			 
+batch_size		runtime	(s)		only IO?		Throughput			Comment
+2048			16.772825 		No, 			61.466 MB/s			with kernel calculation
+2048			15.545481		Yes. 			66.319 MB/s			only use readLSAReview to a buffer 
+
+The percentage of IO v.s. calculation is
+15.545481/16.772825 = 92.68%
+
