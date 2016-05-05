@@ -1,5 +1,7 @@
 // readme
 
+The step size is set to be 2.0
+
 Please refer to the runtime recording below:
 1081047490 Byte = 1.0068 GB = 1030.96 MB
 
@@ -14,4 +16,4 @@ final error rate is around 10%
 
 batch_size		latency				throughput
 1 				out of time	(>100s)	<0.01
-
+32				11545.3
