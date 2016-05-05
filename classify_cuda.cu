@@ -60,8 +60,8 @@ void trainLogRegKernel(
             }
             // printf("%f\n", gradient[0]);
             weight_temp[i] = gradient[0]; // the sum is stored in the 0th element
-            // __syncthreads();
         }
+        __syncthreads();
 
         if (threadIdx.x == 0) {
             for (int i = 0; i < REVIEW_DIM; ++i) {
