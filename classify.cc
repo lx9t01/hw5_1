@@ -76,7 +76,7 @@ void readLSAReview(string review_str, float *output, int stride) {
     for (string component; getline(stream, component, ','); component_idx++) {
         output[stride * component_idx] = atof(component.c_str());
     }
-    //assert(component_idx == REVIEW_DIM + 1);
+    assert(component_idx == REVIEW_DIM + 1);
 }
 
 void classify(istream& in_stream, int batch_size) {
@@ -122,7 +122,8 @@ void classify(istream& in_stream, int batch_size) {
     int review_idx = 0;
     for(string review_str; getline(in_stream, review_str); review_idx++){
         // TODO ok: process review_str with readLSAReview
-        readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
+        // readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
+        readLSAReview(review_str, host_buffer, 1);
         /*
         // TODO ok: if you have filled up a batch, copy H->D, call kernel and copy
         //      D->H all in a stream
