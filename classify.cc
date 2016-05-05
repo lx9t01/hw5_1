@@ -133,15 +133,15 @@ void classify(istream& in_stream, int batch_size) {
             times++;
             printf("%d\n", times);
             review_idx = 0;
-            
-            gpuErrChk(cudaMemcpyAsync(dev_data_0, host_buffer, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
-            gpuErrChk(cudaMemcpyAsync(dev_data_1, host_buffer + (REVIEW_DIM+1) * batch_size, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[1]));
 
+            gpuErrChk(cudaMemcpyAsync(dev_data_1, host_buffer + (REVIEW_DIM+1) * batch_size, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[1]));
             START_TIMER(); 
             error_0 = cudaClassify(dev_data_0, batch_size, step_size, dev_weights, s[0]);
             // cudaStreamSynchronize(s[0]);
             STOP_RECORD_TIMER(str1);
             printf("the error 0 is %f \n", error_0);
+
+            gpuErrChk(cudaMemcpyAsync(dev_data_0, host_buffer, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
             START_TIMER(); 
             error_1 = cudaClassify(dev_data_1, batch_size, step_size, dev_weights, s[1]);
             // cudaStreamSynchronize(s[1]);
