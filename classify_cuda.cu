@@ -16,6 +16,8 @@
  *         An output variable for the kernel. The kernel can either write the
  *         value of loss function over the batch or the misclassification rate
  *         in the batch to errors.
+ * weight_temp: a temporary global memory for weights, storing weight vector for 
+ *              shared memory result in a batch
  */
 __global__
 void trainLogRegKernel(
@@ -32,19 +34,24 @@ void trainLogRegKernel(
 
     while (thread_index < batch_size) {
         float wx = 0;
+        // calculate w^T * x
         for (int i = 0; i < REVIEW_DIM; ++i) {
             wx += weights[i] * data[thread_index*(REVIEW_DIM+1)+i];
         }
-        if (wx * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] < 0) {
+        // w^T * x is the prediction result of previous w
+        if (wx * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] < 0) { // if the prediction is not right
             atomicAdd(errors, 1);
         }
-
+        // calclate the denominator
         float denom = (1 + exp(data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * wx));
 
-        for (int i = 0; i < REVIEW_DIM; ++i) {
-            gradient[threadIdx.x] = (-1.0/batch_size * data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * data[thread_index*(REVIEW_DIM+1)+i])/denom;
+        for (int i = 0; i < REVIEW_DIM; ++i) { 
+        // for each dimension in a data point
+            gradient[threadIdx.x] = (-1.0/batch_size * \
+                data[thread_index*(REVIEW_DIM+1)+REVIEW_DIM] * \
+                data[thread_index*(REVIEW_DIM+1)+i])/denom;
             int l = blockDim.x;
-            while (l > 1) {
+            while (l > 1) { // reduction loop for the accumulation
                 l /= 2;
                 if (threadIdx.x < l) {
                     gradient[threadIdx.x] += gradient[threadIdx.x + l];
@@ -52,15 +59,18 @@ void trainLogRegKernel(
                 __syncthreads();
             }
             // printf("%f\n", gradient[0]);
-            weight_temp[i] = gradient[0];
+            weight_temp[i] = gradient[0]; // the sum is stored in the 0th element
         }
+
         if (threadIdx.x == 0) {
             for (int i = 0; i < REVIEW_DIM; ++i) {
+                // the addition of two shared memory result in a batch
                 atomicAdd(&weights[i], -step_size * weight_temp[i]);
                 // weights[i] = 0;
             }
         }
         if (thread_index == batch_size - 1) {
+            // calculate error rate, using just (random) one threadIdx 
             *errors /= batch_size;
         }
         __syncthreads();

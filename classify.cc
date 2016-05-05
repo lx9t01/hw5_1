@@ -82,20 +82,24 @@ void readLSAReview(string review_str, float *output, int stride) {
 void classify(istream& in_stream, int batch_size) {
     // TODO ok: randomly initialize weights. allocate and initialize buffers on
     //       host & device. allocate and initialize streams
-    // float *weight_host, *dev_weight;
-    // gpuErrChk(cudaHostAlloc((void**) &weight_host, REVIEW_DIM * sizeof(float), cudaHostAllocDefault));
+    // host weights vector
     float* weights = (float*) malloc(REVIEW_DIM * sizeof(float));
+    // random initialize
     gaussianFill(weights, REVIEW_DIM);
+
+    // device weights vector
     float* dev_weights;
     gpuErrChk(cudaMalloc((void**) &dev_weights, REVIEW_DIM * sizeof(float)));
     gpuErrChk(cudaMemcpy(dev_weights, weights, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
 
-    float *host_buffer = (float*) malloc(2 * batch_size * (REVIEW_DIM + 1) * sizeof(float));;                // buffer in host
+    // the buffer is 2*batch_size of data points
+    float *host_buffer = (float*) malloc(2 * batch_size * (REVIEW_DIM + 1) * sizeof(float)); 
+    // device data memory for 2 streams, batch_size of data each
     float *dev_data_0, *dev_data_1; 
-    // gpuErrChk(cudaHostAlloc((void**) &output_host, 2 * (REVIEW_DIM+1) * batch_size * sizeof(float), cudaHostAllocDefault));
     gpuErrChk(cudaMalloc((void**) &dev_data_0, (REVIEW_DIM+1) * batch_size * sizeof(float)));
     gpuErrChk(cudaMalloc((void**) &dev_data_1, (REVIEW_DIM+1) * batch_size * sizeof(float)));
 
+    // streams
     cudaStream_t s[2];
     cudaStreamCreate(&s[0]);
     cudaStreamCreate(&s[1]);
@@ -114,14 +118,14 @@ void classify(istream& in_stream, int batch_size) {
     float error_0 = 0;
     float error_1 = 0;
     for(string review_str; getline(in_stream, review_str); review_idx++){
-        // TODO: process review_str with readLSAReview
+        // TODO ok: process review_str with readLSAReview
         readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
 
-        // TODO: if you have filled up a batch, copy H->D, call kernel and copy
+        // TODO ok: if you have filled up a batch, copy H->D, call kernel and copy
         //      D->H all in a stream
-        if(review_idx == 2 * batch_size - 1){
+        if(review_idx == 2 * batch_size - 1){ // if the buffer is full, copy data to 2 streams
             review_idx = 0;
-            START_TIMER();
+            START_TIMER(); 
             gpuErrChk(cudaMemcpyAsync(dev_data_0, host_buffer, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
             error_0 = cudaClassify(dev_data_0, batch_size, step_size, dev_weights, s[0]);
             printf("the error 0 is %f \n", error_0);
@@ -137,7 +141,6 @@ void classify(istream& in_stream, int batch_size) {
         cudaStreamSynchronize(s[i]);
         cudaStreamDestroy(s[i]);
     }
-    //gpuErrchk(cudaMemcpy(weight_host, dev_weight, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost));
     cudaMemcpy(weights, dev_weights, REVIEW_DIM * sizeof(float), cudaMemcpyDeviceToHost);
     // TODO: print out weights
     cudaFree(dev_weights);
