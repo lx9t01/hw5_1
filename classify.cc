@@ -121,6 +121,7 @@ void classify(istream& in_stream, int batch_size) {
     float error_1 = 0;
     
     int review_idx = 0;
+    int times = 0;
     for(string review_str; getline(in_stream, review_str); review_idx++){
         // TODO ok: process review_str with readLSAReview
         readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
@@ -129,6 +130,8 @@ void classify(istream& in_stream, int batch_size) {
         // TODO ok: if you have filled up a batch, copy H->D, call kernel and copy
         //      D->H all in a stream
         if(review_idx == 2 * batch_size - 1){ // if the buffer is full, copy data to 2 streams
+            times++;
+            printf("%d\n", times);
             review_idx = 0;
             
             gpuErrChk(cudaMemcpyAsync(dev_data_0, host_buffer, (REVIEW_DIM+1) * batch_size * sizeof(float), cudaMemcpyHostToDevice, s[0]));
@@ -187,7 +190,7 @@ int main(int argc, char** argv) {
     // Init timing
     float time_initial, time_final;
     
-    int batch_size = 8192;
+    int batch_size = 4096;
     
     // begin timer
     time_initial = clock();
