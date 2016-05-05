@@ -96,6 +96,7 @@ float cudaClassify(
 
     // grid_size = CEIL(batch_size / block_size)
     int grid_size = (batch_size + block_size - 1) / block_size;
+    printf("%d %d \n", block_size, grid_size);
     int shmem_bytes = 0;
 
     float *d_errors;
