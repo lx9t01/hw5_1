@@ -60,20 +60,17 @@ void trainLogRegKernel(
             }
             // printf("%f\n", gradient[0]);
             // weight_temp[i] = gradient[0]; // the sum is stored in the 0th element
-            if (threadIdx.x == 0)
-                atomicAdd(&weights[i], -step_size * gradient[0]);
         }
-        __syncthreads();
 
-        // if (threadIdx.x == 0) {
-        //     for (int i = 0; i < REVIEW_DIM; ++i) {
-        //         // the addition of two shared memory result in a batch
-        //         // atomicAdd(&weights[i], -step_size * weight_temp[i]);
-        //         // atomicAdd(&weights[i], -step_size * gradient[0]);
-        //         // weights[i] = 0;
-        //         // weights[i] = weights[i] - step_size * weight_temp[i];
-        //     }
-        // }
+        if (threadIdx.x == 0) {
+            for (int i = 0; i < REVIEW_DIM; ++i) {
+                // the addition of two shared memory result in a batch
+                // atomicAdd(&weights[i], -step_size * weight_temp[i]);
+                atomicAdd(&weights[i], -step_size * gradient[0]);
+                // weights[i] = 0;
+                // weights[i] = weights[i] - step_size * weight_temp[i];
+            }
+        }
         if (thread_index == batch_size - 1) {
             // calculate error rate, using just (random) one threadIdx 
             *errors /= batch_size;
