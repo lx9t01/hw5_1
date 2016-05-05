@@ -69,7 +69,7 @@ void trainLogRegKernel(
                 // weights[i] = 0;
             }
         }
-        if (thread_index == blockDim.x - 1) {
+        if (thread_index == batch_size - 1) {
             // calculate error rate, using just (random) one threadIdx 
             *errors /= batch_size;
         }
