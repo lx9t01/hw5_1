@@ -28,7 +28,8 @@ Because the number of iterations get reduced, the final result and accuracy of w
 cuda-gdb gave an 
 Error: Failed to suspend device (dev=2, error=1).
 and it was discussed that it could because of staying in the kernel for too long (too complecated loop)
-
+(when I run the kernel on cuda-GDB, the latency is super huge, when using gdb, there is NO illegal memory
+access assert!!! This is super weird.)
 
 batch_size		latency	(s)				total runtime (s)	throughput
 4096			0.429809998				16.547529			9530.01
