@@ -31,5 +31,6 @@ worked. I feel that the original calculation of grid_size is reasonable, but whe
 it will stuck in the second stream at random iteration numbers. (batch_size = 8192 is the limit)
 
 batch_size		latency	(s)				total runtime (s)	throughput
+4096			0.429809998				16.547529			9530.01
 16384
 65536
