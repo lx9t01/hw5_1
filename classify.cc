@@ -115,10 +115,10 @@ void classify(istream& in_stream, int batch_size) {
     float acm_gpu_mps = -1.0;
     float gpu_mps = -1.0;
     float step_size = 2.0;
-    int review_idx = 0;
     float error_0 = 0;
     float error_1 = 0;
     */
+    int review_idx = 0;
     for(string review_str; getline(in_stream, review_str); review_idx++){
         // TODO ok: process review_str with readLSAReview
         readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
