@@ -83,7 +83,7 @@ void classify(istream& in_stream, int batch_size) {
     // TODO ok: randomly initialize weights. allocate and initialize buffers on
     //       host & device. allocate and initialize streams
     // host weights vector
-    /*
+    
     float* weights = (float*) malloc(REVIEW_DIM * sizeof(float));
     // random initialize
     gaussianFill(weights, REVIEW_DIM);
@@ -92,10 +92,10 @@ void classify(istream& in_stream, int batch_size) {
     float* dev_weights;
     gpuErrChk(cudaMalloc((void**) &dev_weights, REVIEW_DIM * sizeof(float)));
     gpuErrChk(cudaMemcpy(dev_weights, weights, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
-    */
+    
     // the buffer is 2*batch_size of data points
     float *host_buffer = (float*) malloc(2 * batch_size * (REVIEW_DIM + 1) * sizeof(float)); 
-    /*
+    
     // device data memory for 2 streams, batch_size of data each
     float *dev_data_0, *dev_data_1; 
     gpuErrChk(cudaMalloc((void**) &dev_data_0, (REVIEW_DIM+1) * batch_size * sizeof(float)));
@@ -118,13 +118,13 @@ void classify(istream& in_stream, int batch_size) {
     float step_size = 2.0;
     float error_0 = 0;
     float error_1 = 0;
-    */
+    
     int review_idx = 0;
     for(string review_str; getline(in_stream, review_str); review_idx++){
         // TODO ok: process review_str with readLSAReview
         // readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
         readLSAReview(review_str, host_buffer, 1);
-        /*
+        
         // TODO ok: if you have filled up a batch, copy H->D, call kernel and copy
         //      D->H all in a stream
         if(review_idx == 2 * batch_size - 1){ // if the buffer is full, copy data to 2 streams
@@ -140,9 +140,9 @@ void classify(istream& in_stream, int batch_size) {
             acm_gpu_mps += gpu_mps;
             
         }
-        */
+        
     }
-    /*
+    
     cout << "the gpu time is " << acm_gpu_mps << endl;
     for(int i = 0; i < 2; ++i){
         cudaStreamSynchronize(s[i]);
@@ -162,7 +162,7 @@ void classify(istream& in_stream, int batch_size) {
     // TODO: free all memory
     free(host_buffer);
     free(weights);
-    */
+    
 
 }
 
