@@ -92,9 +92,10 @@ void classify(istream& in_stream, int batch_size) {
     float* dev_weights;
     gpuErrChk(cudaMalloc((void**) &dev_weights, REVIEW_DIM * sizeof(float)));
     gpuErrChk(cudaMemcpy(dev_weights, weights, REVIEW_DIM * sizeof(float), cudaMemcpyHostToDevice));
-
+    */
     // the buffer is 2*batch_size of data points
     float *host_buffer = (float*) malloc(2 * batch_size * (REVIEW_DIM + 1) * sizeof(float)); 
+    /*
     // device data memory for 2 streams, batch_size of data each
     float *dev_data_0, *dev_data_1; 
     gpuErrChk(cudaMalloc((void**) &dev_data_0, (REVIEW_DIM+1) * batch_size * sizeof(float)));
