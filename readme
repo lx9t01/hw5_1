@@ -23,5 +23,13 @@ batch_size		latency	(s)				total runtime (s)	throughput
 When the batch_size got big, somewhere in the for loop there is an illegal memory
 access from the second stream.
 
+Because the number of iterations get reduced, the final result and accuracy of weight suffer.
+
+I changed the grid_size to be fixed at 512 (should be sufficient), and the large batch now
+can be fit into the gpu. I don;t know if this is the way you want us to debug, but it somehow
+worked. I feel that the original calculation of grid_size is reasonable, but when batch_size get large, 
+it will stuck in the second stream at random iteration numbers. (batch_size = 8192 is the limit)
+
+batch_size		latency	(s)				total runtime (s)	throughput
 16384
 65536
