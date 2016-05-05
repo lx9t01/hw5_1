@@ -3,4 +3,5 @@
 Please refer to the runtime recording below:
 Rumtime: 
 batch_size		runtime	(s)		only IO?
-2048			16.772825 		No, with kernel calculation 
+2048			16.772825 		No, with kernel calculation
+2048			 

@@ -137,8 +137,9 @@ void classify(istream& in_stream, int batch_size) {
             printf("the error 1 is %f \n", error_1);
             STOP_RECORD_TIMER(gpu_mps);
             acm_gpu_mps += gpu_mps;
-            */
+            
         }
+        */
     }
     /*
     cout << "the gpu time is " << acm_gpu_mps << endl;
