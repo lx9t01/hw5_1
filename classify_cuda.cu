@@ -75,7 +75,7 @@ void trainLogRegKernel(
             // calculate error rate, using just (random) one threadIdx 
             *errors /= batch_size;
         }
-        // __syncthreads();
+        __syncthreads();
         thread_index += blockDim.x * gridDim.x;
     }
     
