@@ -113,7 +113,7 @@ void classify(istream& in_stream, int batch_size) {
     // main loop to process input lines (each line corresponds to a review)
     float acm_gpu_mps = -1.0;
     float gpu_mps = -1.0;
-    float step_size = 1.0;
+    float step_size = 2.0;
     int review_idx = 0;
     float error_0 = 0;
     float error_1 = 0;
