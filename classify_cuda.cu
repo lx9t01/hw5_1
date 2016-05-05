@@ -118,7 +118,7 @@ float cudaClassify(
         weights,
         d_errors,
         weight_temp);
-    // cudaDeviceSynchronize();
+    cudaDeviceSynchronize();
     float h_errors = -1.0;
     cudaMemcpy(&h_errors, d_errors, sizeof(float), cudaMemcpyDefault);
     cudaFree(d_errors);
