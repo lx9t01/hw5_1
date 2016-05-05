@@ -14,6 +14,6 @@ The percentage of parsing and IO v.s. total with calculation is
 15.545481/16.772825 = 92.68%
 final error rate is around 10%
 
-batch_size		latency				throughput
-1 				out of time	(>100s)	<0.01
-32				11545.3
+batch_size		latency	(s)				total runtime (s)	throughput
+1 				out of time	(>100s)						<0.01
+32				10.710475586			27.821920
