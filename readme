@@ -19,5 +19,9 @@ batch_size		latency	(s)				total runtime (s)	throughput
 32				10.710475586			27.821920			2.99
 1024			1.663786621				17.699587			615.50
 2048			0.827701477				16.672071			2474.33
+
+When the batch_size got big, somewhere in the for loop there is an illegal memory
+access from the second stream.
+
 16384
 65536
