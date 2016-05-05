@@ -92,10 +92,11 @@ float cudaClassify(
     float *weights, 
     cudaStream_t stream)
 {
-    int block_size = (batch_size < 1024) ? batch_size : 1024;
-
+    // int block_size = (batch_size < 1024) ? batch_size : 1024;
+    int block_size = 1024;
+    int grid_size = 65535;
     // grid_size = CEIL(batch_size / block_size)
-    int grid_size = (batch_size + block_size - 1) / block_size;
+    // int grid_size = (batch_size + block_size - 1) / block_size;
     // int grid_size = 512;
     printf("%d %d \n", block_size, grid_size);
     int shmem_bytes = 0;
