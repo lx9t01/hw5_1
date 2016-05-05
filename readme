@@ -2,5 +2,5 @@
 
 Please refer to the runtime recording below:
 Rumtime: 
-batch_size		runtime			only IO?
-2048			
+batch_size		runtime	(s)		only IO?
+2048			16.772825 
