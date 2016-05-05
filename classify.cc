@@ -83,6 +83,7 @@ void classify(istream& in_stream, int batch_size) {
     // TODO ok: randomly initialize weights. allocate and initialize buffers on
     //       host & device. allocate and initialize streams
     // host weights vector
+    /*
     float* weights = (float*) malloc(REVIEW_DIM * sizeof(float));
     // random initialize
     gaussianFill(weights, REVIEW_DIM);
@@ -117,10 +118,11 @@ void classify(istream& in_stream, int batch_size) {
     int review_idx = 0;
     float error_0 = 0;
     float error_1 = 0;
+    */
     for(string review_str; getline(in_stream, review_str); review_idx++){
         // TODO ok: process review_str with readLSAReview
         readLSAReview(review_str, host_buffer + (REVIEW_DIM+1) * review_idx, 1);
-
+        /*
         // TODO ok: if you have filled up a batch, copy H->D, call kernel and copy
         //      D->H all in a stream
         if(review_idx == 2 * batch_size - 1){ // if the buffer is full, copy data to 2 streams
@@ -134,8 +136,10 @@ void classify(istream& in_stream, int batch_size) {
             printf("the error 1 is %f \n", error_1);
             STOP_RECORD_TIMER(gpu_mps);
             acm_gpu_mps += gpu_mps;
+            */
         }
     }
+    /*
     cout << "the gpu time is " << acm_gpu_mps << endl;
     for(int i = 0; i < 2; ++i){
         cudaStreamSynchronize(s[i]);
@@ -155,6 +159,7 @@ void classify(istream& in_stream, int batch_size) {
     // TODO: free all memory
     free(host_buffer);
     free(weights);
+    */
 
 }
 
