@@ -20,3 +20,4 @@ batch_size		latency	(s)				total runtime (s)	throughput
 1024			1.663786621				17.699587			615.50
 2048			0.827701477				16.672071			2474.33
 16384
+65536
