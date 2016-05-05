@@ -25,10 +25,10 @@ access from the second stream.
 
 Because the number of iterations get reduced, the final result and accuracy of weight suffer.
 
-I changed the grid_size to be fixed at 512 (should be sufficient), and the large batch now
-can be fit into the gpu. I don;t know if this is the way you want us to debug, but it somehow
-worked. I feel that the original calculation of grid_size is reasonable, but when batch_size get large, 
-it will stuck in the second stream at random iteration numbers. (batch_size = 8192 is the limit)
+cuda-gdb gave an 
+Error: Failed to suspend device (dev=2, error=1).
+and it was discussed that it could because of staying in the kernel for too long (too complecated loop)
+
 
 batch_size		latency	(s)				total runtime (s)	throughput
 4096			0.429809998				16.547529			9530.01
