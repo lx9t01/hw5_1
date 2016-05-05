@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
     // Init timing
     float time_initial, time_final;
     
-    int batch_size = 3072;
+    int batch_size = 4096;
     
     // begin timer
     time_initial = clock();
