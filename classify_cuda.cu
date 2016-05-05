@@ -23,7 +23,7 @@ __global__
 void trainLogRegKernel(
     float *data,
     int batch_size,
-    int step_size,
+    float step_size,
 	float *weights,
     float *errors,
     float *weight_temp)
